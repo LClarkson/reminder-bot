@@ -38,8 +38,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
     // Fetch the full message
     const reactedMessage = await reaction.message.fetch();
     const users = Array.from(await reaction.users.fetch());
-    const remindWho = users[0][1].username;
-    const remindWhoID = users[0][1].id;
+    const whoToRemind = users[0][1].username;
+    const whoToRemindID = users[0][1].id;
 
     // Extract information about the message
     const author = reactedMessage.author.username;
@@ -48,8 +48,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
     console.log('Author:', author);
     console.log('Message:', content);
     console.log('MessageID:', reactedMessage.id);
-    console.log('Remind:', remindWho);
-    console.log ('Remind UserID:', remindWhoID);
+    console.log('Remind:', whoToRemind);
+    console.log ('Remind UserID:', whoToRemindID);
 
   } catch (error) {
     console.error('Error fetching message:', error);
