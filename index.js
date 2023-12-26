@@ -11,7 +11,14 @@ const token = process.env.DISCORD_TOKEN;
 
 /*************** Require discord.js classes and create a new client instance ****************/
 
-const { Client, Events, GatewayIntentBits, Partials } = require('discord.js');
+const {
+  Client,
+  Events,
+  GatewayIntentBits,
+  Partials,
+  MessageActionRow,
+  MessageButton,
+} = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -35,15 +42,15 @@ client.on('messageReactionAdd', async (reaction, user) => {
   if (user.bot) return;
 
   try {
-    // Fetch the full message
+    // Fetch the full message and users who react with emoji
     const reactedMessage = await reaction.message.fetch();
     const users = Array.from(await reaction.users.fetch());
-    const whoToRemind = users[0][1].username;
-    const whoToRemindID = users[0][1].id;
 
     // Extract information about the message
     const author = reactedMessage.author.username;
     const content = reactedMessage.content;
+    const whoToRemind = users[0][1].username;
+    const whoToRemindID = users[0][1].id;
 
     console.log('Author:', author);
     console.log('Message:', content);
@@ -51,9 +58,12 @@ client.on('messageReactionAdd', async (reaction, user) => {
     console.log('Remind:', whoToRemind);
     console.log ('Remind UserID:', whoToRemindID);
 
+    reactedMessage.reply(`Remind me that ${author} said "${content}"`);
+
   } catch (error) {
     console.error('Error fetching message:', error);
   }
+
 });
 
 /****************************** Log in to Discord API with Bot ******************************/
