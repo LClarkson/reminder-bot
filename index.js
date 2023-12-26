@@ -37,16 +37,24 @@ client.on('messageReactionAdd', async (reaction, user) => {
   try {
     // Fetch the full message
     const reactedMessage = await reaction.message.fetch();
+    const users = Array.from(await reaction.users.fetch());
+    const remindWho = users[0][1].username;
+    const remindWhoID = users[0][1].id;
 
     // Extract information about the message
-    const author = reactedMessage.author.tag;
+    const author = reactedMessage.author.username;
     const content = reactedMessage.content;
 
-    console.log(reactedMessage);
+    console.log('Author:', author);
+    console.log('Message:', content);
+    console.log('MessageID:', reactedMessage.id);
+    console.log('Remind:', remindWho);
+    console.log ('Remind UserID:', remindWhoID);
+
   } catch (error) {
     console.error('Error fetching message:', error);
   }
 });
 
-/****************************** Log in to Discord API with Bot *****************************/
+/****************************** Log in to Discord API with Bot ******************************/
 client.login(token);
