@@ -6,6 +6,9 @@
 // Load environment variables from .env
 require('dotenv').config();
 
+// Require date formatter
+const moment = require('moment');
+
 // Store discord API token in variable
 const token = process.env.DISCORD_TOKEN;
 
@@ -16,8 +19,10 @@ const {
   Events,
   GatewayIntentBits,
   Partials,
-  MessageActionRow,
-  MessageButton,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
 } = require('discord.js');
 
 const client = new Client({
@@ -48,17 +53,42 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
     // Extract information about the message
     const author = reactedMessage.author.username;
+    const created = moment(reactedMessage.createdTimestamp).format('MMMM DD, YYYY');
+    const avatar = reactedMessage.author.displayAvatarURL();
     const content = reactedMessage.content;
     const whoToRemind = users[0][1].username;
+    const whoToRemindAvatar = users[0][1].displayAvatarURL();
     const whoToRemindID = users[0][1].id;
 
-    console.log('Author:', author);
-    console.log('Message:', content);
-    console.log('MessageID:', reactedMessage.id);
-    console.log('Remind:', whoToRemind);
-    console.log ('Remind UserID:', whoToRemindID);
+    //console.log('Author:', author);
+    //console.log('Avatar:', avatar);
+    //console.log('Message:', reactedMessage);
+    //console.log('Created at:', created);
+    //console.log('MessageID:', reactedMessage.id);
+    //console.log('Remind:', whoToRemind);
+    //console.log ('Remind UserID:', whoToRemindID);
 
-    reactedMessage.reply(`Remind me that ${author} said "${content}"`);
+/******************************** Build bot message reaction ********************************/
+
+    // Build embed
+    const exampleEmbed = new EmbedBuilder()
+      .setColor(0x0099FF)
+      .setTitle(content)
+      .setAuthor({ name: `On ${created}, ${author} said:` })
+      .setThumbnail(avatar)
+      .setFooter({ text: 'Remind everyone about this message in:', iconURL: whoToRemindAvatar });
+
+    // Bot sends embed with buttons for reminder interval
+    reactedMessage.reply({
+      embeds: [exampleEmbed],
+      components: [
+        new ActionRowBuilder().setComponents(
+          new ButtonBuilder().setCustomId('1week').setLabel('1 Week').setStyle(ButtonStyle.Primary),
+          new ButtonBuilder().setCustomId('2weeks').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
+          new ButtonBuilder().setCustomId('3weeks').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
+        ),
+      ],
+    });
 
   } catch (error) {
     console.error('Error fetching message:', error);
