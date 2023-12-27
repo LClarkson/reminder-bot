@@ -48,29 +48,42 @@ client.on('messageReactionAdd', async (reaction, user) => {
   // Check if the reaction is from the bot or another user
   if (user.bot) return;
 
+  let reactedMessage;
+  let users;
+
   try {
     // Fetch the full message and users who react with emoji
-    const reactedMessage = await reaction.message.fetch();
-    const users = Array.from(await reaction.users.fetch());
+    reactedMessage = await reaction.message.fetch();
+    users = Array.from(await reaction.users.fetch());
 
-    // Extract information about the message
-    const author = reactedMessage.member.displayName;
-    const created = moment(reactedMessage.createdTimestamp).format('MMMM DD, YYYY');
-    const avatar = reactedMessage.author.displayAvatarURL();
-    const content = reactedMessage.content;
-    const whoToRemind = users[0][1].username;
-    const whoToRemindAvatar = users[0][1].displayAvatarURL();
-    const whoToRemindID = users[0][1].id;
+  } catch (error) {
+    console.error('Error fetching message:', error);
+  }
 
-/******************************** Build bot message reaction ********************************/
+  /*********** Extract information about message-reacted-to and user who reacted ************/
+
+  const reactedMessageInfo = {
+    author: reactedMessage.member.displayName,
+    createdAt: moment(reactedMessage.createdTimestamp).format('MMMM DD, YYYY'),
+    avatar: reactedMessage.author.displayAvatarURL(),
+    content: reactedMessage.content,
+  };
+
+  const userWhoReacted = {
+    name: users[0][1].username,
+    avatar: users[0][1].displayAvatarURL(),
+    id: users[0][1].id,
+  };
+
+  /************************* Build and send bot message reaction ***************************/
 
     // Build bot reply embed
     const botReplyEmbed = new EmbedBuilder()
       .setColor(0x0099FF)
-      .setTitle(content)
-      .setAuthor({ name: `On ${created}, ${author} said:` })
-      .setThumbnail(avatar)
-      .setFooter({ text: 'Remind everyone about this in:', iconURL: whoToRemindAvatar });
+      .setTitle(reactedMessageInfo.content)
+      .setAuthor({ name: `On ${reactedMessageInfo.createdAt}, ${reactedMessageInfo.author} said:` })
+      .setThumbnail(reactedMessageInfo.avatar)
+      .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar });
 
     // Bot sends embed with buttons for reminder interval
     reactedMessage.reply({
@@ -93,10 +106,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
       ],
     });
 
-    // Handle button reminder clicks
+    /*************************** Handle bot message button clicks ***************************/
+
     client.on('interactionCreate', (interaction) => {
       if (!interaction.isButton()) return;
-      if (interaction.customId == '1week' && interaction.user.id === whoToRemindID) {
+      if (interaction.customId == '1week' && interaction.user.id === userWhoReacted.id) {
         console.log('1 week clicked');
         interaction.reply({
           content: 'You\'ll be reminded in 1 week',
@@ -108,7 +122,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
           embeds: [
             botReplyEmbed.setFooter({
               text: 'Remind everyone about this in: 1 week',
-              iconURL: whoToRemindAvatar,
+              iconURL: userWhoReacted.avatar,
             }),
           ],
           // Clear buttons
@@ -122,9 +136,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
       }
     });
 
-  } catch (error) {
-    console.error('Error fetching message:', error);
-  }
 });
 
 /****************************** Log in to Discord API with Bot ******************************/
