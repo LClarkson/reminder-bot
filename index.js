@@ -3,16 +3,7 @@
 /* eslint-disable indent */
 /* eslint-disable no-unused-vars */
 
-// Load environment variables from .env
-require('dotenv').config();
-
-// Require date formatter
-const moment = require('moment');
-
-// Store discord API token in variable
-const token = process.env.DISCORD_TOKEN;
-
-/*************** Require discord.js classes and create a new client instance ****************/
+/********************** Require discord.js classes and other packages ***********************/
 
 const {
   Client,
@@ -24,6 +15,17 @@ const {
   ButtonStyle,
   EmbedBuilder,
 } = require('discord.js');
+
+// Require date formatter
+const moment = require('moment');
+
+// Load environment variables from .env
+require('dotenv').config();
+
+// Store discord API token in variable
+const token = process.env.DISCORD_TOKEN;
+
+/************************************** Create client ***************************************/
 
 const client = new Client({
   intents: [
@@ -59,14 +61,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const whoToRemind = users[0][1].username;
     const whoToRemindAvatar = users[0][1].displayAvatarURL();
     const whoToRemindID = users[0][1].id;
-
-    // console.log('Author:', author);
-    // console.log('Avatar:', avatar);
-    // console.log('Message:', reactedMessage);
-    // console.log('Created at:', created);
-    // console.log('MessageID:', reactedMessage.id);
-    // console.log('Remind:', whoToRemind);
-    // console.log ('Remind UserID:', whoToRemindID);
 
 /******************************** Build bot message reaction ********************************/
 
@@ -109,11 +103,17 @@ client.on('messageReactionAdd', async (reaction, user) => {
           ephemeral: true,
         });
 
-        // Edit original bot message to show reminder time
+        // Edit original bot message to show reminder time and delete interval buttons
         interaction.message.edit({
-          embeds: [botReplyEmbed.setFooter({ text: 'Remind everyone about this in: 1 week', iconURL: whoToRemindAvatar })],
+          embeds: [
+            botReplyEmbed.setFooter({
+              text: 'Remind everyone about this in: 1 week',
+              iconURL: whoToRemindAvatar,
+            }),
+          ],
+          // Clear buttons
           components: [],
-         });
+        });
       } else {
         interaction.reply({
           content: `Only ${interaction.user.username} can set a reminder on this message.`,
