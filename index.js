@@ -23,8 +23,6 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
-  InteractionCollector,
-  ComponentType,
 } = require('discord.js');
 
 const client = new Client({
@@ -62,13 +60,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const whoToRemindAvatar = users[0][1].displayAvatarURL();
     const whoToRemindID = users[0][1].id;
 
-    //console.log('Author:', author);
-    //console.log('Avatar:', avatar);
-    //console.log('Message:', reactedMessage);
-    //console.log('Created at:', created);
-    //console.log('MessageID:', reactedMessage.id);
-    //console.log('Remind:', whoToRemind);
-    //console.log ('Remind UserID:', whoToRemindID);
+    // console.log('Author:', author);
+    // console.log('Avatar:', avatar);
+    // console.log('Message:', reactedMessage);
+    // console.log('Created at:', created);
+    // console.log('MessageID:', reactedMessage.id);
+    // console.log('Remind:', whoToRemind);
+    // console.log ('Remind UserID:', whoToRemindID);
 
 /******************************** Build bot message reaction ********************************/
 
@@ -101,20 +99,25 @@ client.on('messageReactionAdd', async (reaction, user) => {
       ],
     });
 
+    // Handle button reminder clicks
+    client.on('interactionCreate', (interaction) => {
+      if (!interaction.isButton()) return;
+      if (interaction.customId == '1week' && interaction.user.id === whoToRemindID) {
+        console.log('1 week clicked');
+        interaction.reply('You\'ll be reminded in 1 week');
+      } else {
+        interaction.reply({
+          content: `Only ${interaction.user.username} can set a reminder on this message.`,
+          ephemeral: true,
+        });
+      }
+    });
+
   } catch (error) {
     console.error('Error fetching message:', error);
   }
 });
 
-/******************************* Handle reminder button clicks ******************************/
-
-client.on('interactionCreate', (interaction) => {
-  if (!interaction.isButton()) return;
-  if (interaction.customId == '1week') {
-    console.log('1 week clicked');
-    interaction.reply('You\'ll be reminded in 1 week');
-  }
-});
-
 /****************************** Log in to Discord API with Bot ******************************/
+
 client.login(token);
