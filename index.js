@@ -23,6 +23,8 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  InteractionCollector,
+  ComponentType,
 } = require('discord.js');
 
 const client = new Client({
@@ -70,22 +72,31 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 /******************************** Build bot message reaction ********************************/
 
-    // Build embed
-    const exampleEmbed = new EmbedBuilder()
+    // Build bot reply embed
+    const botReplyEmbed = new EmbedBuilder()
       .setColor(0x0099FF)
       .setTitle(content)
       .setAuthor({ name: `On ${created}, ${author} said:` })
       .setThumbnail(avatar)
-      .setFooter({ text: 'Remind everyone about this message in:', iconURL: whoToRemindAvatar });
+      .setFooter({ text: 'Remind everyone about this in:', iconURL: whoToRemindAvatar });
 
     // Bot sends embed with buttons for reminder interval
     reactedMessage.reply({
-      embeds: [exampleEmbed],
+      embeds: [botReplyEmbed],
       components: [
         new ActionRowBuilder().setComponents(
           new ButtonBuilder().setCustomId('1week').setLabel('1 Week').setStyle(ButtonStyle.Primary),
           new ButtonBuilder().setCustomId('2weeks').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
           new ButtonBuilder().setCustomId('3weeks').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
+        ),
+        new ActionRowBuilder().setComponents(
+          new ButtonBuilder().setCustomId('1month').setLabel('1 Month').setStyle(ButtonStyle.Primary),
+          new ButtonBuilder().setCustomId('3months').setLabel('3 Months').setStyle(ButtonStyle.Primary),
+          new ButtonBuilder().setCustomId('6months').setLabel('6 Months').setStyle(ButtonStyle.Primary),
+        ),
+        new ActionRowBuilder().setComponents(
+          new ButtonBuilder().setCustomId('1year').setLabel('1 Year').setStyle(ButtonStyle.Primary),
+          new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
         ),
       ],
     });
@@ -93,7 +104,16 @@ client.on('messageReactionAdd', async (reaction, user) => {
   } catch (error) {
     console.error('Error fetching message:', error);
   }
+});
 
+/******************************* Handle reminder button clicks ******************************/
+
+client.on('interactionCreate', (interaction) => {
+  if (!interaction.isButton()) return;
+  if (interaction.customId == '1week') {
+    console.log('1 week clicked');
+    interaction.reply('You\'ll be reminded in 1 week');
+  }
 });
 
 /****************************** Log in to Discord API with Bot ******************************/
