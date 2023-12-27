@@ -52,7 +52,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const users = Array.from(await reaction.users.fetch());
 
     // Extract information about the message
-    const author = reactedMessage.author.username;
+    const author = reactedMessage.member.displayName;
     const created = moment(reactedMessage.createdTimestamp).format('MMMM DD, YYYY');
     const avatar = reactedMessage.author.displayAvatarURL();
     const content = reactedMessage.content;
@@ -104,7 +104,16 @@ client.on('messageReactionAdd', async (reaction, user) => {
       if (!interaction.isButton()) return;
       if (interaction.customId == '1week' && interaction.user.id === whoToRemindID) {
         console.log('1 week clicked');
-        interaction.reply('You\'ll be reminded in 1 week');
+        interaction.reply({
+          content: 'You\'ll be reminded in 1 week',
+          ephemeral: true,
+        });
+
+        // Edit original bot message to show reminder time
+        interaction.message.edit({
+          embeds: [botReplyEmbed.setFooter({ text: 'Remind everyone about this in: 1 week', iconURL: whoToRemindAvatar })],
+          components: [],
+         });
       } else {
         interaction.reply({
           content: `Only ${interaction.user.username} can set a reminder on this message.`,
