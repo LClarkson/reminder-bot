@@ -65,9 +65,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
     avatar: users[0][1].displayAvatarURL(),
   };
 
-  console.log(reactedMessageInfo);
-  console.log(userWhoReacted);
-
   /************************* Build and send bot message reaction ****************************/
 
     // Build bot reply embed
