@@ -46,7 +46,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
     // Fetch the full message and users who react with emoji
     reactedMessage = await reaction.message.fetch();
     users = Array.from(await reaction.users.fetch());
-
   } catch (error) {
     console.error('Error fetching message:', error);
   }
@@ -60,7 +59,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     timestamp: new Date(reactedMessage.createdTimestamp),
     createdAt: new Date(reactedMessage.createdTimestamp).toLocaleString(
       'en-US',
-      { year: 'numeric', month: 'long', day: 'numeric' },
+      { year: 'numeric', month: 'long', day: 'numeric' }
     ),
     avatar: reactedMessage.author.displayAvatarURL(),
   };
@@ -75,69 +74,102 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   // Build bot reply embed
   const botReplyEmbed = new EmbedBuilder()
-    .setColor(0x0099FF)
+    .setColor(0x0099ff)
     .setTitle(reactedMessageInfo.content)
-    .setAuthor({ name: `On ${reactedMessageInfo.createdAt}, ${reactedMessageInfo.author} said:` })
+    .setAuthor({
+      name: `On ${reactedMessageInfo.createdAt}, ${reactedMessageInfo.author} said:`,
+    })
     .setThumbnail(reactedMessageInfo.avatar)
-    .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar });
+    .setFooter({
+      text: 'Remind everyone about this in:',
+      iconURL: userWhoReacted.avatar,
+    });
 
   // Bot sends embed with buttons for reminder interval
   reactedMessage.reply({
     embeds: [botReplyEmbed],
     components: [
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('1week').setLabel('1 Week').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('2weeks').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('3weeks').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('1week')
+          .setLabel('1 Week')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('2weeks')
+          .setLabel('2 Weeks')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('3weeks')
+          .setLabel('3 Weeks')
+          .setStyle(ButtonStyle.Primary)
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('1month').setLabel('1 Month').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('3months').setLabel('3 Months').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('6months').setLabel('6 Months').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('1month')
+          .setLabel('1 Month')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('3months')
+          .setLabel('3 Months')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('6months')
+          .setLabel('6 Months')
+          .setStyle(ButtonStyle.Primary)
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('1year').setLabel('1 Year').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId('1year')
+          .setLabel('1 Year')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('cancel')
+          .setLabel('Cancel')
+          .setStyle(ButtonStyle.Danger)
       ),
     ],
   });
 
   /*************************** Handle bot message button clicks ***************************/
 
-  client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isButton()) return;
+  const interactionCreateHandler = async (interaction) => {
 
-    if (interaction.customId == '1week' && interaction.user.id === userWhoReacted.id) {
+      if (!interaction.isButton()) return;
 
-      // Set reminder date
-      const reminderDate = new Date(reactedMessageInfo.timestamp);
-      reminderDate.setDate(reactedMessageInfo.timestamp.getDate() + 7);
+      if (interaction.customId == '1week' && interaction.user.id === userWhoReacted.id) {
 
-      // Save message to db
-      const reminderMsg = await ReminderMsg.create({
-        msgId: reactedMessageInfo.id,
-        msgAuthor: reactedMessageInfo.author,
-        msgContent: reactedMessageInfo.content,
-        msgTimestamp: reactedMessageInfo.timestamp,
-        msgCreatedAt: reactedMessageInfo.createdAt,
-        msgAuthorAvatar: reactedMessageInfo.avatar,
-        reactedID: userWhoReacted.id,
-        reactedName: userWhoReacted.name,
-        reactedAvatar: userWhoReacted.avatar,
-        reminderDate: reminderDate,
-      });
+        // Set reminder date
+        const reminderDate = new Date(reactedMessageInfo.timestamp);
+        reminderDate.setDate(reactedMessageInfo.timestamp.getDate() + 7);
 
-      // Edit original bot message to show reminder time and delete interval buttons
-     interaction.message.edit({
-        embeds: [
-          botReplyEmbed.setFooter({
-            text: 'Remind everyone about this in: 1 week',
-            iconURL: userWhoReacted.avatar,
-          }),
-        ],
-        // Clear buttons
-        components: [],
-      });
+        // Save message to db
+        await ReminderMsg.create({
+          msgId: reactedMessageInfo.id,
+          msgAuthor: reactedMessageInfo.author,
+          msgContent: reactedMessageInfo.content,
+          msgTimestamp: reactedMessageInfo.timestamp,
+          msgCreatedAt: reactedMessageInfo.createdAt,
+          msgAuthorAvatar: reactedMessageInfo.avatar,
+          reactedID: userWhoReacted.id,
+          reactedName: userWhoReacted.name,
+          reactedAvatar: userWhoReacted.avatar,
+          reminderDate: reminderDate,
+        });
+
+        // Edit original bot message to show reminder time and delete interval buttons
+        interaction.message.edit({
+          embeds: [
+            botReplyEmbed.setFooter({
+              text: 'Remind everyone about this in: 1 week',
+              iconURL: userWhoReacted.avatar,
+            }),
+          ],
+          // Clear buttons
+          components: [],
+        });
+
+      // Remove the listener after handling the interaction
+      client.removeListener('interactionCreate', interactionCreateHandler);
 
     } else {
       interaction.reply({
@@ -145,7 +177,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
         ephemeral: true,
       });
     }
-  });
+  };
+
+  // Add the interactionCreate listener
+  client.on('interactionCreate', interactionCreateHandler);
 });
 
 /****************** Log in to Discord API with Bot & log in to MongoDB ********************/
