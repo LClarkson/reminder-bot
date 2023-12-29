@@ -7,8 +7,8 @@
 
 const { Client, Events, GatewayIntentBits, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const mongoose = require('mongoose');
+const ReminderMsg = require('./msgSchema.js');
 require('dotenv').config({ path: __dirname + '/../.env' });
-const token = process.env.DISCORD_TOKEN;
 
 /************************************** Create client ***************************************/
 
@@ -21,10 +21,16 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-/******************** Log message to confirm bot is online and logged in ********************/
+/********************************* Connection Log Messages **********************************/
 
+// Bot login message
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+});
+
+// MongoDB login message
+mongoose.connection.on('connected', () => {
+  console.log('Connected to MongoDB smesters-discord');
 });
 
 /********************** Listen for user reactions to messages in server *********************/
@@ -67,7 +73,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   /************************* Build and send bot message reaction ****************************/
 
-    // Build bot reply embed
+  // Build bot reply embed
   const botReplyEmbed = new EmbedBuilder()
     .setColor(0x0099FF)
     .setTitle(reactedMessageInfo.content)
@@ -98,17 +104,31 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   /*************************** Handle bot message button clicks ***************************/
 
-  client.on('interactionCreate', (interaction) => {
+  client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
+
     if (interaction.customId == '1week' && interaction.user.id === userWhoReacted.id) {
-      console.log('1 week clicked');
-      interaction.reply({
-        content: 'You\'ll be reminded in 1 week',
-        ephemeral: true,
+
+      // Set reminder date
+      const reminderDate = new Date(reactedMessageInfo.timestamp);
+      reminderDate.setDate(reactedMessageInfo.timestamp.getDate() + 7);
+
+      // Save message to db
+      const reminderMsg = await ReminderMsg.create({
+        msgId: reactedMessageInfo.id,
+        msgAuthor: reactedMessageInfo.author,
+        msgContent: reactedMessageInfo.content,
+        msgTimestamp: reactedMessageInfo.timestamp,
+        msgCreatedAt: reactedMessageInfo.createdAt,
+        msgAuthorAvatar: reactedMessageInfo.avatar,
+        reactedID: userWhoReacted.id,
+        reactedName: userWhoReacted.name,
+        reactedAvatar: userWhoReacted.avatar,
+        reminderDate: reminderDate,
       });
 
       // Edit original bot message to show reminder time and delete interval buttons
-      interaction.message.edit({
+     interaction.message.edit({
         embeds: [
           botReplyEmbed.setFooter({
             text: 'Remind everyone about this in: 1 week',
@@ -118,16 +138,22 @@ client.on('messageReactionAdd', async (reaction, user) => {
         // Clear buttons
         components: [],
       });
+
     } else {
       interaction.reply({
-        content: `Only ${interaction.user.username} can set a reminder on this message.`,
+        content: `Only ${userWhoReacted.name} can set a reminder on this message.`,
         ephemeral: true,
       });
     }
   });
-
 });
 
-/****************************** Log in to Discord API with Bot ******************************/
+/****************** Log in to Discord API with Bot & log in to MongoDB ********************/
 
-client.login(token);
+client.login(process.env.DISCORD_TOKEN);
+
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    dbName: 'smesters-discord',
+  })
+  .catch(error => console.log(error));
