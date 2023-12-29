@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 const ReminderMsg = require('./msgSchema.js');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
-/************************* *********** Create client ****************************************/
+/*********************************** Create bot client **************************************/
 
 const client = new Client({
   intents: [
@@ -77,14 +77,12 @@ client.on('messageReactionAdd', async (reaction, user) => {
   /*************************** Define Bot Reply Embed Builder *******************************/
 
   const buildReplyEmbed = () => {
-    return [
-      new EmbedBuilder()
+    return new EmbedBuilder()
         .setColor(0x0099ff)
         .setTitle(reactedMessageInfo.content)
         .setAuthor({ name: `${reactedMessageInfo.author}\n${reactedMessageInfo.createdAt}:` })
         .setThumbnail(reactedMessageInfo.avatar)
-        .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar }),
-    ];
+        .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar })
   };
 
   /************************** Define Bot Reply Button Builder *******************************/
@@ -114,55 +112,57 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
     // Bot sends embed with buttons for reminder interval
     reactedMsg.reply({
-      embeds: buildReplyEmbed(),
+      embeds: [buildReplyEmbed()],
       components: buildButtonComponents(),
+    });
+  };
+
+  /************************* Define save message to db function *****************************/
+
+  const saveReminderToDatabase = async (messageInfo, userInfo) => {
+    const reminderDate = new Date(messageInfo.timestamp);
+    reminderDate.setDate(messageInfo.timestamp.getDate() + 7);
+
+    // Save message to db
+    await ReminderMsg.create({
+      channelId: messageInfo.channelId,
+      channelName: messageInfo.channelName,
+      msgId: messageInfo.id,
+      msgAuthor: messageInfo.author,
+      msgContent: messageInfo.content,
+      msgTimestamp: messageInfo.timestamp,
+      msgCreatedAt: messageInfo.createdAt,
+      msgAuthorAvatar: messageInfo.avatar,
+      reactedID: userInfo.id,
+      reactedName: userInfo.name,
+      reactedAvatar: userInfo.avatar,
+      reminderDate: reminderDate,
+      reminded: false,
     });
   };
 
   /************************ Define Bot Reply Button Click Handler ***************************/
 
-  const interactionCreateHandler = async (interaction) => {
+  const buttonClickHandler = async (interaction) => {
+    if (!interaction.isButton()) return;
 
-      if (!interaction.isButton()) return;
+    if (interaction.customId == '1week' && interaction.user.id === userWhoReacted.id) {
+      await saveReminderToDatabase(reactedMessageInfo, userWhoReacted);
 
-      if (interaction.customId == '1week' && interaction.user.id === userWhoReacted.id) {
-
-        // Set reminder date
-        const reminderDate = new Date(reactedMessageInfo.timestamp);
-        reminderDate.setDate(reactedMessageInfo.timestamp.getDate() + 7);
-
-        // Save message to db
-        await ReminderMsg.create({
-          channelId: reactedMessageInfo.channelId,
-          channelName: reactedMessageInfo.channelName,
-          msgId: reactedMessageInfo.id,
-          msgAuthor: reactedMessageInfo.author,
-          msgContent: reactedMessageInfo.content,
-          msgTimestamp: reactedMessageInfo.timestamp,
-          msgCreatedAt: reactedMessageInfo.createdAt,
-          msgAuthorAvatar: reactedMessageInfo.avatar,
-          reactedID: userWhoReacted.id,
-          reactedName: userWhoReacted.name,
-          reactedAvatar: userWhoReacted.avatar,
-          reminderDate: reminderDate,
-          reminded: false,
-        });
-
-        // Edit original bot message to show reminder time and delete interval buttons
-        interaction.message.edit({
-          embeds: [
-            buildReplyEmbed().setFooter({
-              text: 'Remind everyone about this in: 1 week',
-              iconURL: userWhoReacted.avatar,
-            }),
-          ],
-          // Clear buttons
-          components: [],
-        });
+      // Edit original bot message to show reminder time and delete interval buttons
+      interaction.message.edit({
+        embeds: [
+          buildReplyEmbed().setFooter({
+            text: 'Remind everyone about this in: 1 week',
+            iconURL: userWhoReacted.avatar,
+          }),
+        ],
+        // Clear buttons
+        components: [],
+      });
 
       // Remove the listener after handling the interaction
-      client.removeListener('interactionCreate', interactionCreateHandler);
-
+      client.removeListener('interactionCreate', buttonClickHandler);
     } else {
       interaction.reply({
         content: `Only ${userWhoReacted.name} can set a reminder on this message.`,
@@ -179,7 +179,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
   }
 
   // Add the interactionCreate listener
-  client.on('interactionCreate', interactionCreateHandler);
+  client.on('interactionCreate', buttonClickHandler);
 
 });
 

@@ -16,4 +16,7 @@ const MsgSchema = new mongoose.Schema({
 	reminded: mongoose.SchemaTypes.Boolean,
 });
 
-module.exports = mongoose.model('ReminderMsg', MsgSchema);
+// Specify model export variable and set collection to write to - 'staging'
+const ReminderMsg = mongoose.model('ReminderMsg', MsgSchema, 'staging');
+
+module.exports = ReminderMsg;

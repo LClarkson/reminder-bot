@@ -1,0 +1,1 @@
+// every day at 3:00am, move any documents with today's date from 'staging' to 'remindermsgs'
