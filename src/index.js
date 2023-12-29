@@ -180,6 +180,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   // Add the interactionCreate listener
   client.on('interactionCreate', interactionCreateHandler);
+
 });
 
 /******************** Log in to Discord API with Bot & log in to MongoDB ********************/
