@@ -74,7 +74,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     avatar: users[0][1].displayAvatarURL(),
   };
 
-  /*************************** Define Bot Reply Embed Builder *******************************/
+  /************ Define Bot Reply Embed Builder [RETURNS an embed oject] *********************/
 
   const buildReplyEmbed = () => {
     return new EmbedBuilder()
@@ -82,10 +82,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
         .setTitle(reactedMessageInfo.content)
         .setAuthor({ name: `${reactedMessageInfo.author}\n${reactedMessageInfo.createdAt}:` })
         .setThumbnail(reactedMessageInfo.avatar)
-        .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar })
+        .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar });
   };
 
-  /************************** Define Bot Reply Button Builder *******************************/
+  /******** Define Bot Reply Button Builder [RETURNS an array of button components] *********/
 
   const buildButtonComponents = () => {
     return [
