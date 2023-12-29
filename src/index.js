@@ -59,7 +59,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     timestamp: new Date(reactedMessage.createdTimestamp),
     createdAt: new Date(reactedMessage.createdTimestamp).toLocaleString(
       'en-US',
-      { year: 'numeric', month: 'long', day: 'numeric' }
+      { year: 'numeric', month: 'long', day: 'numeric' },
     ),
     avatar: reactedMessage.author.displayAvatarURL(),
   };
@@ -101,7 +101,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         new ButtonBuilder()
           .setCustomId('3weeks')
           .setLabel('3 Weeks')
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
         new ButtonBuilder()
@@ -115,7 +115,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         new ButtonBuilder()
           .setCustomId('6months')
           .setLabel('6 Months')
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
         new ButtonBuilder()
@@ -125,7 +125,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
         new ButtonBuilder()
           .setCustomId('cancel')
           .setLabel('Cancel')
-          .setStyle(ButtonStyle.Danger)
+          .setStyle(ButtonStyle.Danger),
       ),
     ],
   });
