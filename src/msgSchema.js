@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
 const MsgSchema = new mongoose.Schema({
+	channelId: mongoose.SchemaTypes.String,
+	channelName: mongoose.SchemaTypes.String,
 	msgId: mongoose.SchemaTypes.String,
 	msgAuthor: mongoose.SchemaTypes.String,
 	msgContent: mongoose.SchemaTypes.String,
@@ -11,6 +13,7 @@ const MsgSchema = new mongoose.Schema({
 	reactedName: mongoose.SchemaTypes.String,
 	reactedAvatar: mongoose.SchemaTypes.String,
 	reminderDate: mongoose.SchemaTypes.Date,
+	reminded: mongoose.SchemaTypes.Boolean,
 });
 
 module.exports = mongoose.model('ReminderMsg', MsgSchema);

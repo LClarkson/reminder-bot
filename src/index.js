@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 const ReminderMsg = require('./msgSchema.js');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
-/************************************** Create client ***************************************/
+/************************* *********** Create client ****************************************/
 
 const client = new Client({
   intents: [
@@ -36,11 +36,13 @@ mongoose.connection.on('connected', () => {
 /********************** Listen for user reactions to messages in server *********************/
 
 client.on('messageReactionAdd', async (reaction, user) => {
-  // Check if the reaction is from the bot or another user
-  if (user.bot) return;
 
+  // Define message and user variables
   let reactedMessage;
   let users;
+
+  // Check if the reaction is from the bot or another user
+  if (user.bot) return;
 
   try {
     // Fetch the full message and users who react with emoji
@@ -53,6 +55,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
   /*********** Extract information about message-reacted-to and user who reacted ************/
 
   const reactedMessageInfo = {
+    channelId: reactedMessage.channel.id,
+    channelName: reactedMessage.channel.name,
     id: reactedMessage.id,
     author: reactedMessage.member.displayName,
     content: reactedMessage.content,
@@ -70,67 +74,52 @@ client.on('messageReactionAdd', async (reaction, user) => {
     avatar: users[0][1].displayAvatarURL(),
   };
 
-  /************************* Build and send bot message reaction ****************************/
+  /*************************** Define Bot Reply Embed Builder *******************************/
 
-  // Build bot reply embed
-  const botReplyEmbed = new EmbedBuilder()
-    .setColor(0x0099ff)
-    .setTitle(reactedMessageInfo.content)
-    .setAuthor({
-      name: `On ${reactedMessageInfo.createdAt}, ${reactedMessageInfo.author} said:`,
-    })
-    .setThumbnail(reactedMessageInfo.avatar)
-    .setFooter({
-      text: 'Remind everyone about this in:',
-      iconURL: userWhoReacted.avatar,
+  const buildReplyEmbed = () => {
+    return [
+      new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle(reactedMessageInfo.content)
+        .setAuthor({ name: `${reactedMessageInfo.author}\n${reactedMessageInfo.createdAt}:` })
+        .setThumbnail(reactedMessageInfo.avatar)
+        .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar }),
+    ];
+  };
+
+  /************************** Define Bot Reply Button Builder *******************************/
+
+  const buildButtonComponents = () => {
+    return [
+      new ActionRowBuilder().setComponents(
+        new ButtonBuilder().setCustomId('1week').setLabel('1 Week').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('2weeks').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('3weeks').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
+      ),
+      new ActionRowBuilder().setComponents(
+        new ButtonBuilder().setCustomId('1month').setLabel('1 Month').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('3months').setLabel('3 Months').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('6months').setLabel('6 Months').setStyle(ButtonStyle.Primary),
+      ),
+      new ActionRowBuilder().setComponents(
+        new ButtonBuilder().setCustomId('1year').setLabel('1 Year').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
+      ),
+    ];
+  };
+
+  /****************************** Define Bot Reply Function *********************************/
+
+  const sendReply = (reactedMsg) => {
+
+    // Bot sends embed with buttons for reminder interval
+    reactedMsg.reply({
+      embeds: buildReplyEmbed(),
+      components: buildButtonComponents(),
     });
+  };
 
-  // Bot sends embed with buttons for reminder interval
-  reactedMessage.reply({
-    embeds: [botReplyEmbed],
-    components: [
-      new ActionRowBuilder().setComponents(
-        new ButtonBuilder()
-          .setCustomId('1week')
-          .setLabel('1 Week')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('2weeks')
-          .setLabel('2 Weeks')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('3weeks')
-          .setLabel('3 Weeks')
-          .setStyle(ButtonStyle.Primary),
-      ),
-      new ActionRowBuilder().setComponents(
-        new ButtonBuilder()
-          .setCustomId('1month')
-          .setLabel('1 Month')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('3months')
-          .setLabel('3 Months')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('6months')
-          .setLabel('6 Months')
-          .setStyle(ButtonStyle.Primary),
-      ),
-      new ActionRowBuilder().setComponents(
-        new ButtonBuilder()
-          .setCustomId('1year')
-          .setLabel('1 Year')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('cancel')
-          .setLabel('Cancel')
-          .setStyle(ButtonStyle.Danger),
-      ),
-    ],
-  });
-
-  /*************************** Handle bot message button clicks ***************************/
+  /************************ Define Bot Reply Button Click Handler ***************************/
 
   const interactionCreateHandler = async (interaction) => {
 
@@ -144,6 +133,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
         // Save message to db
         await ReminderMsg.create({
+          channelId: reactedMessageInfo.channelId,
+          channelName: reactedMessageInfo.channelName,
           msgId: reactedMessageInfo.id,
           msgAuthor: reactedMessageInfo.author,
           msgContent: reactedMessageInfo.content,
@@ -154,12 +145,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
           reactedName: userWhoReacted.name,
           reactedAvatar: userWhoReacted.avatar,
           reminderDate: reminderDate,
+          reminded: false,
         });
 
         // Edit original bot message to show reminder time and delete interval buttons
         interaction.message.edit({
           embeds: [
-            botReplyEmbed.setFooter({
+            buildReplyEmbed().setFooter({
               text: 'Remind everyone about this in: 1 week',
               iconURL: userWhoReacted.avatar,
             }),
@@ -179,11 +171,18 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
   };
 
+  /******************** Define How Bot Reacts to Different Interactions *********************/
+
+  // If user trys to set a reminder on a bot reminder message, disallow that
+  if (reactedMessage.author.id !== client.user.id) {
+    sendReply(reactedMessage);
+  }
+
   // Add the interactionCreate listener
   client.on('interactionCreate', interactionCreateHandler);
 });
 
-/****************** Log in to Discord API with Bot & log in to MongoDB ********************/
+/******************** Log in to Discord API with Bot & log in to MongoDB ********************/
 
 client.login(process.env.DISCORD_TOKEN);
 
