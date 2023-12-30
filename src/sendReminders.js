@@ -87,7 +87,9 @@ client.connect().then(() => {
 
 		messages.forEach(message => {
 			const channel = botClient.channels.cache.get(message.channelId);
+			const mentionUser = `<@${message.reactedID}>`;
 			channel.send({
+				content: `${mentionUser}, here's your reminder:`,
 				embeds: [buildReminderEmbed(message)],
 			});
 		});

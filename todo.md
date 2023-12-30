@@ -1,1 +1,1 @@
-[] build chron job to check for documents in remindermsgs collection
+[x] build chron job to check for documents in remindermsgs collection
