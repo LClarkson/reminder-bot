@@ -138,7 +138,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
       reactedName: userInfo.name,
       reactedAvatar: userInfo.avatar,
       reminderDate: reminderDate,
-      reminded: false,
     });
   };
 

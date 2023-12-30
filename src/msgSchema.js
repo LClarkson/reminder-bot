@@ -13,7 +13,6 @@ const MsgSchema = new mongoose.Schema({
 	reactedName: mongoose.SchemaTypes.String,
 	reactedAvatar: mongoose.SchemaTypes.String,
 	reminderDate: mongoose.SchemaTypes.Date,
-	reminded: mongoose.SchemaTypes.Boolean,
 });
 
 // Specify model export variable and set collection to write to - 'staging'
