@@ -45,11 +45,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
   if (user.bot) return;
 
   try {
-    // Fetch the full message and users who react with emoji
-    reactedMessage = await reaction.message.fetch();
-    users = Array.from(await reaction.users.fetch());
+      // Fetch the full message and users who react with emoji
+      reactedMessage = await reaction.message.fetch();
+      users = Array.from(await reaction.users.fetch());
   } catch (error) {
-    console.error('Error fetching message:', error);
+      console.error('Error fetching message:', error);
   }
 
   /*********** Extract information about message-reacted-to and user who reacted ************/
