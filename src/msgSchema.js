@@ -16,6 +16,6 @@ const MsgSchema = new mongoose.Schema({
 });
 
 // Specify model export variable and set collection to write to - 'staging'
-const ReminderMsg = mongoose.model('ReminderMsg', MsgSchema, 'remindermsgs');
+const ReminderMsg = mongoose.model('ReminderMsg', MsgSchema, 'staging');
 
 module.exports = ReminderMsg;
