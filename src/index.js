@@ -90,17 +90,17 @@ client.on('messageReactionAdd', async (reaction, user) => {
   const buildButtonComponents = () => {
     return [
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('1week').setLabel('1 Week').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('2weeks').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('3weeks').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('7').setLabel('1 Week').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('14').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('21').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('1month').setLabel('1 Month').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('3months').setLabel('3 Months').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('6months').setLabel('6 Months').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('30').setLabel('1 Month').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('60').setLabel('3 Months').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('90').setLabel('6 Months').setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('1year').setLabel('1 Year').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('365').setLabel('1 Year').setStyle(ButtonStyle.Primary),
         new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
       ),
     ];
@@ -120,9 +120,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
   /************************* Define save message to db function *****************************/
 
   const saveReminderToDatabase = async (messageInfo, userInfo) => {
-    // const reminderDate = new Date(messageInfo.timestamp);
-    // reminderDate.setDate(messageInfo.timestamp.getDate() + 7);
-    const reminderDate = new Date();
+    const reminderDate = new Date(messageInfo.timestamp);
+    reminderDate.setDate(messageInfo.timestamp.getDate() + 7);
 
     // Save message to db
     await ReminderMsg.create({
@@ -146,7 +145,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
   const buttonClickHandler = async (interaction) => {
     if (!interaction.isButton()) return;
 
-    if (interaction.customId == '1week' && interaction.user.id === userWhoReacted.id) {
+    if (interaction.user.id === userWhoReacted.id) {
       await saveReminderToDatabase(reactedMessageInfo, userWhoReacted);
 
       // Edit original bot message to show reminder time and delete interval buttons
