@@ -120,8 +120,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
   /************************* Define save message to db function *****************************/
 
   const saveReminderToDatabase = async (messageInfo, userInfo) => {
-    const reminderDate = new Date(messageInfo.timestamp);
-    reminderDate.setDate(messageInfo.timestamp.getDate() + 7);
+    // const reminderDate = new Date(messageInfo.timestamp);
+    // reminderDate.setDate(messageInfo.timestamp.getDate() + 7);
+    const reminderDate = new Date();
 
     // Save message to db
     await ReminderMsg.create({

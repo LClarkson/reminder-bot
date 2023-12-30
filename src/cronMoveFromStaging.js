@@ -14,10 +14,10 @@ const sourceCollectionName = 'staging';
 const destinationCollectionName = 'remindermsgs';
 
 // Cron schedule (runs every day at midnight)
-const cronSchedule = '0 0 * * *';
+const cronSchedule = '*/10 * * * * *';
 
 // MongoDB client
-const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+const client = new MongoClient(mongoURI);
 
 // Connect to MongoDB and schedule the job
 client.connect().then(() => {
@@ -38,17 +38,25 @@ client.connect().then(() => {
 			const sourceCollection = db.collection(sourceCollectionName);
 			const destinationCollection = db.collection(destinationCollectionName);
 
+			// Search query
+			const today = new Date();
+			const todaysReminders = {
+				reminderDate: {
+					$gte: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0),
+					$lt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 0, 0, 0),
+				},
+			};
+
 			// Find documents in the source collection (you can customize the query)
-			const documentsToMove = await sourceCollection.find({}).toArray();
+			const documentsToMove = await sourceCollection.find(todaysReminders).toArray();
 
 			// Insert the documents into the destination collection
 			await destinationCollection.insertMany(documentsToMove);
 
 			// Delete the moved documents from the source collection
-			await sourceCollection.deleteMany({});
+			await sourceCollection.deleteMany(todaysReminders);
 
-			console.log('Cron job completed successfully.');
-
+			console.log(`Cron job completed successfully.\nMoved ${documentsToMove.length} document(s) from staging to remindermsgs.`);
 		} catch (error) {
 			console.error('Error in cron job:', error);
 		}
