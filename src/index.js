@@ -145,7 +145,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
       const buttonClickHandler = async (interaction) => {
         if (!interaction.isButton()) return;
 
+
         if (interaction.user.id === userWhoReacted.id) {
+
+          if (interaction.customId === 'cancel') {
+            await interaction.message.delete();
+            return;
+          }
 
           const idTranslate = {
             '7': '1 week',
