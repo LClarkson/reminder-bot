@@ -62,7 +62,7 @@ client.connect().then(() => {
 		// Fetch messages from db
 		try {
 			// Define db variables
-			const dbName = 'smesters-discord';
+			const dbName = process.env.MONGODB_DBNAME;
 			const db = client.db(dbName);
 			const sourceCollection = db.collection(sourceCollectionName);
 

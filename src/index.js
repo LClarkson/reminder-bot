@@ -30,7 +30,7 @@ client.once(Events.ClientReady, (readyClient) => {
 
 // MongoDB login message
 mongoose.connection.on('connected', () => {
-  console.log('Connected to MongoDB smesters-discord');
+  console.log(`Connected to MongoDB database: ${process.env.MONGODB_DBNAME}`);
 });
 
 /********************** Listen for user reactions to messages in server *********************/
@@ -200,6 +200,6 @@ client.login(process.env.DISCORD_TOKEN);
 
 mongoose
   .connect(process.env.MONGODB_URI, {
-    dbName: 'smesters-discord',
+    dbName: process.env.MONGODB_DBNAME,
   })
   .catch(error => console.log(error));

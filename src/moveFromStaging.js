@@ -1,7 +1,8 @@
 const MongoMover = require('./mongoMover.js');
 
 // Accepts 3 arguments (sourceCollection, destinationCollection, cronSchedule)
-const mover = new MongoMover('staging', 'remindermsgs', '*/10 * * * * *');
+// Move from staging to remindermsgs every day at 3 AM CST
+const mover = new MongoMover('staging', 'remindermsgs', '0 3 * * *');
 
 mover.connect();
 mover.scheduleJob();

@@ -31,7 +31,7 @@ class MongoMover {
 		console.log('Running the cron job...');
 
 		try {
-			const dbName = 'smesters-discord';
+			const dbName = process.env.MONGODB_DBNAME;
 			const db = this.client.db(dbName);
 
 			const sourceCollection = db.collection(this.sourceCollectionName);
