@@ -44,6 +44,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
   // Check if the reaction is from the bot or another user
   if (user.bot) return;
   if (reaction.emoji.name === '🔔') {
+
       try {
           // Fetch the full message and users who react with emoji
           reactedMessage = await reaction.message.fetch();
@@ -51,6 +52,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
       } catch (error) {
           console.error('Error fetching message:', error);
       }
+
+      // Check if the '🔔' emoji is already present on the message
+      const bellEmojiCount = reactedMessage.reactions.cache.get('🔔')?.count || 0;
+      if (bellEmojiCount !== 1) return;
 
       /*********** Extract information about message-reacted-to and user who reacted ************/
 
@@ -143,13 +148,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
       /************************ Define Bot Reply Button Click Handler ***************************/
 
       const buttonClickHandler = async (interaction) => {
+
         if (!interaction.isButton()) return;
-
-
         if (interaction.user.id === userWhoReacted.id) {
 
+          // Delete bot message if user clicks cancel
           if (interaction.customId === 'cancel') {
             await interaction.message.delete();
+            client.removeListener('interactionCreate', buttonClickHandler);
             return;
           }
 
@@ -181,7 +187,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
           client.removeListener('interactionCreate', buttonClickHandler);
         } else {
           interaction.reply({
-            content: `Only ${userWhoReacted.name} can set a reminder on this message.`,
+            content: `${userWhoReacted.name} set the first bell. Only they can set a reminder on this message.`,
             ephemeral: true,
           });
         }
@@ -196,7 +202,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
       // Add the interactionCreate listener
       client.on('interactionCreate', buttonClickHandler);
-  }
+    }
 });
 
 
