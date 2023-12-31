@@ -54,7 +54,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       }
 
       // Check if the '🔔' emoji is already present on the message
-      const bellEmojiCount = reactedMessage.reactions.cache.get('🔔')?.count || 0;
+      const bellEmojiCount = reactedMessage.reactions.cache.get('🔔')?.count;
       if (bellEmojiCount !== 1) return;
 
       /*********** Extract information about message-reacted-to and user who reacted ************/

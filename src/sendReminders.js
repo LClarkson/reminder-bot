@@ -43,7 +43,7 @@ const client = new MongoClient(mongoURI);
 
 /*********************************** Define Cron Interval ***********************************/
 
-const cronSchedule = '0 12 * * *';
+const cronSchedule = '0 18 * * *';
 
 /********************************* Connect to Mongo Client **********************************/
 
