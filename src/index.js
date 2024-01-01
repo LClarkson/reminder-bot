@@ -3,14 +3,19 @@
 /* eslint-disable indent */
 /* eslint-disable no-unused-vars */
 
-/********************** Require discord.js classes and other packages ***********************/
+/*********************** Require packages, configure ENV variables **************************/
 
 const { Client, Events, GatewayIntentBits, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const mongoose = require('mongoose');
 const ReminderMsg = require('./msgSchema.js');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
-/*********************************** Create bot client **************************************/
+// Configuration
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DBNAME = process.env.MONGODB_DBNAME;
+
+/******************************** Initialize Discord Client *********************************/
 
 const client = new Client({
   intents: [
@@ -19,18 +24,6 @@ const client = new Client({
     GatewayIntentBits.GuildMessageReactions,
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
-});
-
-/********************************* Connection Log Messages **********************************/
-
-// Bot login message
-client.once(Events.ClientReady, (readyClient) => {
-  console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
-// MongoDB login message
-mongoose.connection.on('connected', () => {
-  console.log(`Connected to MongoDB database: ${process.env.MONGODB_DBNAME}`);
 });
 
 /********************** Listen for user reactions to messages in server *********************/
@@ -114,8 +107,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
       /****************************** Define Bot Reply Function *********************************/
 
       const sendReply = (reactedMsg) => {
-
-        // Bot sends embed with buttons for reminder interval
         reactedMsg.reply({
           embeds: [buildReplyEmbed()],
           components: buildButtonComponents(),
@@ -208,10 +199,18 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 /******************** Log in to Discord API with Bot & log in to MongoDB ********************/
 
-client.login(process.env.DISCORD_TOKEN);
+client
+  .login(DISCORD_TOKEN)
+  .then(client.once(Events.ClientReady, (readyClient) => {
+    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+  }))
+  .catch(error => console.log(error));
 
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    dbName: process.env.MONGODB_DBNAME,
+  .connect(MONGODB_URI, {
+    dbName: MONGODB_DBNAME,
   })
+  .then(mongoose.connection.on('connected', () => {
+    console.log(`Connected to MongoDB database: ${MONGODB_DBNAME}`);
+  }))
   .catch(error => console.log(error));
