@@ -192,6 +192,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   // Add the interactionCreate listener
   client.on('interactionCreate', buttonClickHandler);
+
 });
 
 
