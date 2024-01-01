@@ -27,7 +27,7 @@ class MongoMover {
 		console.log('Connected to MongoDB');
 	}
 
-	async moveDocuments() {
+	async moveDocuments(moveType) {
 		console.log('Running the cron job...');
 
 		try {
@@ -37,20 +37,44 @@ class MongoMover {
 			const sourceCollection = db.collection(this.sourceCollectionName);
 			const destinationCollection = db.collection(this.destinationCollectionName);
 
-			const documentsToMove = await sourceCollection.find().toArray();
+			let documentsToMove;
 
-			await destinationCollection.insertMany(documentsToMove);
-			await sourceCollection.drop();
+			if (moveType === 'today') {
+				// Move documents with a timestamp of today's date
+				const currentDate = new Date();
+				const startOfDay = new Date(currentDate.setHours(0, 0, 0, 0));
+				const endOfDay = new Date(currentDate.setHours(23, 59, 59, 999));
 
-			console.log(`Cron job completed successfully.\nMoved ${documentsToMove.length} document(s) from ${this.sourceCollectionName} to ${this.destinationCollectionName}.`);
+				const dateFilter = {
+					// Assuming your timestamp field is named 'timestamp'
+					msgTimestamp: {
+						$gte: startOfDay,
+						$lte: endOfDay,
+					},
+				};
+
+				documentsToMove = await sourceCollection.find(dateFilter).toArray();
+			} else {
+				// Move all documents
+				documentsToMove = await sourceCollection.find().toArray();
+			}
+
+			if (documentsToMove.length > 0) {
+				await destinationCollection.insertMany(documentsToMove);
+				await sourceCollection.deleteMany({ _id: { $in: documentsToMove.map(doc => doc._id) } });
+
+				console.log(`Cron job completed successfully.\nMoved ${documentsToMove.length} document(s) from ${this.sourceCollectionName} to ${this.destinationCollectionName}.`);
+			} else {
+				console.log('No documents to move.');
+			}
 		} catch (error) {
 			console.error('Error in cron job:', error);
 		}
 	}
 
-	scheduleJob() {
+	scheduleJob(moveType = 'all') {
 		cron.schedule(this.cronSchedule, () => {
-			this.moveDocuments();
+			this.moveDocuments(moveType);
 		});
 	}
 
