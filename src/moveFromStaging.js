@@ -5,5 +5,5 @@ const MongoMover = require('./mongoMover.js');
 const mover = new MongoMover('staging', 'remindermsgs', '0 9 * * *');
 
 mover.connect();
-mover.scheduleJob();
+mover.scheduleJob('todaysMsgs');
 mover.closeConnection();

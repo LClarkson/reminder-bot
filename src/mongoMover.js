@@ -35,19 +35,20 @@ class MongoMover {
 			const db = this.client.db(dbName);
 
 			const sourceCollection = db.collection(this.sourceCollectionName);
-			const destinationCollection = db.collection(this.destinationCollectionName);
+			const destinationCollection = db.collection(
+				this.destinationCollectionName,
+			);
 
 			let documentsToMove;
 
-			if (moveType === 'today') {
+			if (moveType === 'todaysMsgs') {
 				// Move documents with a timestamp of today's date
 				const currentDate = new Date();
 				const startOfDay = new Date(currentDate.setHours(0, 0, 0, 0));
 				const endOfDay = new Date(currentDate.setHours(23, 59, 59, 999));
 
 				const dateFilter = {
-					// Assuming your timestamp field is named 'timestamp'
-					msgTimestamp: {
+					reminderDate: {
 						$gte: startOfDay,
 						$lte: endOfDay,
 					},
@@ -61,9 +62,13 @@ class MongoMover {
 
 			if (documentsToMove.length > 0) {
 				await destinationCollection.insertMany(documentsToMove);
-				await sourceCollection.deleteMany({ _id: { $in: documentsToMove.map(doc => doc._id) } });
+				await sourceCollection.deleteMany({
+					_id: { $in: documentsToMove.map((doc) => doc._id) },
+				});
 
-				console.log(`Cron job completed successfully.\nMoved ${documentsToMove.length} document(s) from ${this.sourceCollectionName} to ${this.destinationCollectionName}.`);
+				console.log(
+					`Cron job completed successfully.\nMoved ${documentsToMove.length} document(s) from ${this.sourceCollectionName} to ${this.destinationCollectionName}.`,
+				);
 			} else {
 				console.log('No documents to move.');
 			}

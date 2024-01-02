@@ -5,7 +5,16 @@
 
 /*********************** Require packages, configure ENV variables **************************/
 
-const { Client, Events, GatewayIntentBits, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const {
+  Client,
+  Events,
+  GatewayIntentBits,
+  Partials,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+} = require('discord.js');
 const mongoose = require('mongoose');
 const ReminderMsg = require('./msgSchema.js');
 require('dotenv').config({ path: __dirname + '/../.env' });
@@ -29,7 +38,6 @@ const client = new Client({
 /********************** Listen for user reactions to messages in server *********************/
 
 client.on('messageReactionAdd', async (reaction, user) => {
-
   // Define message and user variables
   let reactedMessage;
   let users;
@@ -37,11 +45,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
   if (user.bot || reaction.emoji.name !== '🔔') return;
 
   try {
-      // Fetch the full message and users who react with emoji
-      reactedMessage = await reaction.message.fetch();
-      users = Array.from(await reaction.users.fetch());
+    // Fetch the full message and users who react with emoji
+    reactedMessage = await reaction.message.fetch();
+    users = Array.from(await reaction.users.fetch());
   } catch (error) {
-      console.error('Error fetching message:', error);
+    console.error('Error fetching message:', error);
   }
 
   // Check if the '🔔' emoji is already present on the message
@@ -74,11 +82,16 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   const buildReplyEmbed = () => {
     return new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle(reactedMessageInfo.content)
-        .setAuthor({ name: `${reactedMessageInfo.author}\n${reactedMessageInfo.createdAt}:` })
-        .setThumbnail(reactedMessageInfo.avatar)
-        .setFooter({ text: 'Remind everyone about this in:', iconURL: userWhoReacted.avatar });
+      .setColor(0x0099ff)
+      .setTitle(reactedMessageInfo.content)
+      .setAuthor({
+        name: `${reactedMessageInfo.author}\n${reactedMessageInfo.createdAt}:`,
+      })
+      .setThumbnail(reactedMessageInfo.avatar)
+      .setFooter({
+        text: 'Remind everyone about this in:',
+        iconURL: userWhoReacted.avatar,
+      });
   };
 
   /******** Define Bot Reply Button Builder [RETURNS an array of button components] *********/
@@ -86,18 +99,42 @@ client.on('messageReactionAdd', async (reaction, user) => {
   const buildButtonComponents = () => {
     return [
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('7').setLabel('1 Week').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('14').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('21').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('7')
+          .setLabel('1 Week')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('14')
+          .setLabel('2 Weeks')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('21')
+          .setLabel('3 Weeks')
+          .setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('30').setLabel('1 Month').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('90').setLabel('3 Months').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('180').setLabel('6 Months').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('30')
+          .setLabel('1 Month')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('90')
+          .setLabel('3 Months')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('180')
+          .setLabel('6 Months')
+          .setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder().setCustomId('365').setLabel('1 Year').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId('365')
+          .setLabel('1 Year')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('cancel')
+          .setLabel('Cancel')
+          .setStyle(ButtonStyle.Danger),
       ),
     ];
   };
@@ -115,7 +152,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   const saveReminderToDatabase = async (messageInfo, userInfo, interaction) => {
     const reminderDate = new Date(messageInfo.timestamp);
-    reminderDate.setDate(messageInfo.timestamp.getDate() + parseInt(interaction.customId));
+    reminderDate.setDate(
+      messageInfo.timestamp.getDate() + parseInt(interaction.customId),
+    );
 
     // Save message to db
     await ReminderMsg.create({
@@ -137,44 +176,53 @@ client.on('messageReactionAdd', async (reaction, user) => {
   /************************ Define Bot Reply Button Click Handler ***************************/
 
   const buttonClickHandler = async (interaction) => {
-
     // Button ID dictionary
     const idTranslate = {
-      '7': '1 week',
-      '14': '2 weeks',
-      '21': '3 weeks',
-      '30': '1 month',
-      '90': '3 months',
-      '180': '6 months',
-      '365': '1 year',
+      7: '1 week',
+      14: '2 weeks',
+      21: '3 weeks',
+      30: '1 month',
+      90: '3 months',
+      180: '6 months',
+      365: '1 year',
     };
 
     if (!interaction.isButton()) return;
     if (interaction.user.id === userWhoReacted.id) {
-
       // Delete bot message if user clicks cancel
       if (interaction.customId === 'cancel') {
         await interaction.message.delete();
 
-        // Remove all users who reacted with the bell emoji
-        const reactors = await reactedMessage.reactions.cache.get('🔔').users.fetch();
-        reactors.forEach(async (reactor) => {
-        if (!reactor.bot) {
+        // Remove all bell emojis from reacted message
+        const reacters = await reactedMessage.reactions.cache
+          .get('🔔')
+          .users.fetch();
+        reacters.forEach(async (reactor) => {
+          if (!reactor.bot) {
             // Remove the user's reaction
-            await reactedMessage.reactions.cache.get('🔔').reactors.remove(reactor.id);
-        }
-    });
+            await reactedMessage.reactions.cache
+              .get('🔔')
+              .users.remove(user.id);
+          }
+        });
+
         client.removeListener('interactionCreate', buttonClickHandler);
         return;
       }
 
-      await saveReminderToDatabase(reactedMessageInfo, userWhoReacted, interaction);
+      await saveReminderToDatabase(
+        reactedMessageInfo,
+        userWhoReacted,
+        interaction,
+      );
 
       // Edit original bot message to show reminder time and delete interval buttons
       interaction.message.edit({
         embeds: [
           buildReplyEmbed().setFooter({
-            text: `Remind everyone about this in ${idTranslate[interaction.customId]}`,
+            text: `Remind everyone about this in ${
+              idTranslate[interaction.customId]
+            }`,
             iconURL: userWhoReacted.avatar,
           }),
         ],
@@ -201,24 +249,26 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   // Add the interactionCreate listener
   client.on('interactionCreate', buttonClickHandler);
-
 });
-
 
 /******************** Log in to Discord API with Bot & log in to MongoDB ********************/
 
 client
   .login(DISCORD_TOKEN)
-  .then(client.once(Events.ClientReady, (readyClient) => {
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-  }))
-  .catch(error => console.log(error));
+  .then(
+    client.once(Events.ClientReady, (readyClient) => {
+      console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+    }),
+  )
+  .catch((error) => console.log(error));
 
 mongoose
   .connect(MONGODB_URI, {
     dbName: MONGODB_DBNAME,
   })
-  .then(mongoose.connection.on('connected', () => {
-    console.log(`Connected to MongoDB database: ${MONGODB_DBNAME}`);
-  }))
-  .catch(error => console.log(error));
+  .then(
+    mongoose.connection.on('connected', () => {
+      console.log(`Connected to MongoDB database: ${MONGODB_DBNAME}`);
+    }),
+  )
+  .catch((error) => console.log(error));
