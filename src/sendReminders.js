@@ -12,10 +12,16 @@
 
 /*************** Require discord.js classes and other package, create clients ***************/
 
+require('dotenv').config({ path: __dirname + '/../.env' });
 const { Client, Events, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
 const cron = require('node-cron');
+const cronSchedule = '0 18 * * *';
 const { MongoClient } = require('mongodb');
-require('dotenv').config({ path: __dirname + '/../.env' });
+const mongoURI = process.env.MONGODB_URI;
+const client = new MongoClient(mongoURI);
+
+// Configuration
+const sourceCollectionName = 'remindermsgs';
 
 const botClient = new Client({
 	intents: [
@@ -26,17 +32,12 @@ const botClient = new Client({
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-// Bot login message
-botClient.once(Events.ClientReady, (readyClient) => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
-/***************************** Define MongoDB and cron variables ****************************/
-
-const mongoURI = process.env.MONGODB_URI;
-const sourceCollectionName = 'remindermsgs';
-const client = new MongoClient(mongoURI);
-const cronSchedule = '0 18 * * *';
+botClient
+	.login(process.env.DISCORD_TOKEN)
+	.then(botClient.once(Events.ClientReady, (readyClient) => {
+		console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+	}))
+	.catch ((error) => console.log(error));
 
 /********************************* Connect to Mongo Client **********************************/
 
@@ -88,7 +89,3 @@ client.connect().then(() => {
 		});
 	});
 });
-
-/******************** Log in to Discord API with Bot & log in to MongoDB ********************/
-
-botClient.login(process.env.DISCORD_TOKEN);
