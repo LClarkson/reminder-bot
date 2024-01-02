@@ -155,6 +155,15 @@ client.on('messageReactionAdd', async (reaction, user) => {
       // Delete bot message if user clicks cancel
       if (interaction.customId === 'cancel') {
         await interaction.message.delete();
+
+        // Remove all users who reacted with the bell emoji
+        const reactors = await reactedMessage.reactions.cache.get('🔔').users.fetch();
+        reactors.forEach(async (reactor) => {
+        if (!reactor.bot) {
+            // Remove the user's reaction
+            await reactedMessage.reactions.cache.get('🔔').reactors.remove(reactor.id);
+        }
+    });
         client.removeListener('interactionCreate', buttonClickHandler);
         return;
       }
