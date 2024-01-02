@@ -10,14 +10,12 @@
 // could be happening simultaneously if people are setting reminders during a busy part of the day. Instead,
 // write operations will occur in a different collection.
 
-/********************** Require discord.js classes and other packages ***********************/
+/*************** Require discord.js classes and other package, create clients ***************/
 
 const { Client, Events, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
 const cron = require('node-cron');
 const { MongoClient } = require('mongodb');
 require('dotenv').config({ path: __dirname + '/../.env' });
-
-/*********************************** Create bot client **************************************/
 
 const botClient = new Client({
 	intents: [
@@ -28,21 +26,16 @@ const botClient = new Client({
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-/********************************* Connection Log Messages **********************************/
-
 // Bot login message
 botClient.once(Events.ClientReady, (readyClient) => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
-/********************************* Define MongoDB Variables *********************************/
+/***************************** Define MongoDB and cron variables ****************************/
 
 const mongoURI = process.env.MONGODB_URI;
 const sourceCollectionName = 'remindermsgs';
 const client = new MongoClient(mongoURI);
-
-/*********************************** Define Cron Interval ***********************************/
-
 const cronSchedule = '0 18 * * *';
 
 /********************************* Connect to Mongo Client **********************************/
