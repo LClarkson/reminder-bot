@@ -51,7 +51,7 @@ Before setting up and running the Discord Reminder Bot, ensure you have the foll
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/your-username/discord-reminder-bot.git
+   git clone https://github.com/LClarkson/discord-reminder-bot.git
 2. **Navigate to the Project Directory**
    ```bash
    cd <project-directory>
