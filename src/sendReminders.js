@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 /* eslint-disable brace-style */
 /* eslint-disable spaced-comment */
 
@@ -12,7 +13,13 @@
 
 /********************** Require discord.js classes and other packages ***********************/
 
-const { Client, Events, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
+const {
+  Client,
+  Events,
+  GatewayIntentBits,
+  Partials,
+  EmbedBuilder,
+} = require('discord.js');
 const cron = require('node-cron');
 const { MongoClient } = require('mongodb');
 require('dotenv').config({ path: __dirname + '/../.env' });
@@ -20,19 +27,19 @@ require('dotenv').config({ path: __dirname + '/../.env' });
 /*********************************** Create bot client **************************************/
 
 const botClient = new Client({
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.GuildMessageReactions,
-	],
-	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+  ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
 /********************************* Connection Log Messages **********************************/
 
 // Bot login message
 botClient.once(Events.ClientReady, (readyClient) => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+  console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
 /********************************* Define MongoDB Variables *********************************/
@@ -49,51 +56,54 @@ const cronSchedule = '0 18 * * *';
 
 // Connect to MongoDB and schedule the job
 client.connect().then(() => {
-	console.log('Connected to MongoDB');
+  console.log('Connected to MongoDB');
 
-	let messages;
+  let messages;
 
-	/******************************** Schedule Cron Job *************************************/
+  /******************************** Schedule Cron Job *************************************/
 
-	// Schedule the cron job
-	cron.schedule(cronSchedule, async () => {
-		console.log('Running the cron job...');
+  // Schedule the cron job
+  cron.schedule(cronSchedule, async () => {
+    console.log('Running the cron job...');
 
-		// Fetch messages from db
-		try {
-			// Define db variables
-			const dbName = process.env.MONGODB_DBNAME;
-			const db = client.db(dbName);
-			const sourceCollection = db.collection(sourceCollectionName);
+    // Fetch messages from db
+    try {
+      // Define db variables
+      const dbName = process.env.MONGODB_DBNAME;
+      const db = client.db(dbName);
+      const sourceCollection = db.collection(sourceCollectionName);
 
-			// Find documents in the source collection
-			messages = await sourceCollection.find().toArray();
-		} catch (error) {
-			console.error('Error in cron job:', error);
-		}
+      // Find documents in the source collection
+      messages = await sourceCollection.find().toArray();
+    } catch (error) {
+      console.error('Error in cron job:', error);
+    }
 
-		/************************** Build Bot Message Embed *********************************/
+    /************************** Build Bot Message Embed *********************************/
 
-		const buildReminderEmbed = (message) => {
-			return new EmbedBuilder()
-				.setColor(0x0099ff)
-				.setTitle(message.msgContent)
-				.setAuthor({ name: `${message.msgAuthor}\n${message.msgCreatedAt}:` })
-				.setThumbnail(message.msgAuthorAvatar)
-				.setFooter({ text: `Reminded by: ${message.reactedName}`, iconURL: message.reactedAvatar });
-		};
+    const buildReminderEmbed = (message) => {
+      return new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle(message.msgContent)
+        .setAuthor({ name: `${message.msgAuthor}\n${message.msgCreatedAt}:` })
+        .setThumbnail(message.msgAuthorAvatar)
+        .setFooter({
+          text: `Reminded by: ${message.reactedName}`,
+          iconURL: message.reactedAvatar,
+        });
+    };
 
-		/******************************* Send Messages **************************************/
+    /******************************* Send Messages **************************************/
 
-		messages.forEach(message => {
-			const channel = botClient.channels.cache.get(message.channelId);
-			const mentionUser = `<@${message.reactedID}>`;
-			channel.send({
-				content: `${mentionUser}, here's your reminder:`,
-				embeds: [buildReminderEmbed(message)],
-			});
-		});
-	});
+    messages.forEach((message) => {
+      const channel = botClient.channels.cache.get(message.channelId);
+      const mentionUser = `<@${message.reactedID}>`;
+      channel.send({
+        content: `${mentionUser}, here's your reminder:`,
+        embeds: [buildReminderEmbed(message)],
+      });
+    });
+  });
 });
 
 /******************** Log in to Discord API with Bot & log in to MongoDB ********************/
