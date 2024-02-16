@@ -37,7 +37,7 @@ class MongoMover {
 
       const sourceCollection = db.collection(this.sourceCollectionName);
       const destinationCollection = db.collection(
-        this.destinationCollectionName
+        this.destinationCollectionName,
       );
 
       let documentsToMove;
@@ -68,7 +68,7 @@ class MongoMover {
         });
 
         console.log(
-          `Cron job completed successfully.\nMoved ${documentsToMove.length} document(s) from ${this.sourceCollectionName} to ${this.destinationCollectionName}.`
+          `Cron job completed successfully.\nMoved ${documentsToMove.length} document(s) from ${this.sourceCollectionName} to ${this.destinationCollectionName}.`,
         );
       } else {
         console.log('No documents to move.');
