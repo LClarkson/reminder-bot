@@ -20,6 +20,11 @@ Discord Reminder Bot enables users to set reminders on messages through reaction
    - Users can set reminders by reacting with the '🔔' emoji on any message.
    - The bot responds with an interactive button interface, providing various reminder durations.
 
+   <p align="left">
+  <img src="./assets/images/reminderBot-1.png" width="75%" />
+  <img src="./assets/images/reminderBot-2.png" width="75%" />
+  </p>
+
 ### 2. MongoDB Integration
    - Reminders are stored in a MongoDB database, ensuring data persistence.
    - MongoDB allows efficient management of reminders and enables scalable storage.
