@@ -50,6 +50,7 @@ const client = new MongoClient(mongoURI);
 
 /*********************************** Define Cron Interval ***********************************/
 
+// every day at 12pm is 0 18 * * *
 const cronSchedule = '0 18 * * *';
 
 /********************************* Connect to Mongo Client **********************************/
@@ -81,16 +82,29 @@ client.connect().then(() => {
 
     /************************** Build Bot Message Embed *********************************/
 
+    //`[${message.msgContent}](${message.msgLink})`
+
     const buildReminderEmbed = (message) => {
-      return new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle(message.msgContent)
-        .setAuthor({ name: `${message.msgAuthor}\n${message.msgCreatedAt}:` })
-        .setThumbnail(message.msgAuthorAvatar)
-        .setFooter({
-          text: `Reminded by: ${message.reactedName}`,
-          iconURL: message.reactedAvatar,
-        });
+      const msgHyperlink = `[View original message](${message.msgLink})`;
+      // had to build this conditional to prevent "undefined" from showing up in message embed
+      // on messages that were added to db before the URL feature was added. If the message
+      // object has a msgLink property, it will build the embed with that property, if not
+      // (i.e. any message reacted on prior to 4-5-20204), original embed will be sent
+
+      if (message.msgLink) {
+        return new EmbedBuilder()
+          .setColor(0x0099ff)
+          .setTitle(message.msgContent)
+          .setDescription(msgHyperlink)
+          .setAuthor({ name: `${message.msgAuthor}\n${message.msgCreatedAt}:` })
+          .setThumbnail(message.msgAuthorAvatar);
+      } else {
+        return new EmbedBuilder()
+          .setColor(0x0099ff)
+          .setTitle(message.msgContent)
+          .setAuthor({ name: `${message.msgAuthor}\n${message.msgCreatedAt}:` })
+          .setThumbnail(message.msgAuthorAvatar);
+      }
     };
 
     /******************************* Send Messages **************************************/
