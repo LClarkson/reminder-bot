@@ -4,7 +4,8 @@
   "description": "Keep track of your friends' stupid predictions",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prod": "--node-env=production node index.js",
+    "dev": "--node-env=development nodemon index.js"
   },
   "keywords": [],
   "author": "Luke Clarkson",

@@ -20,9 +20,18 @@ const ReminderMsg = require('./msgSchema.js');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
 // Configuration
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DBNAME = process.env.MONGODB_DBNAME;
+const DISCORD_TOKEN =
+  process.env.NODE_ENV === 'development'
+    ? process.env.DISCORD_TOKEN_DEV
+    : process.env.DISCORD_TOKEN;
+const MONGODB_URI =
+  process.env.NODE_ENV === 'development'
+    ? process.env.MONGODB_URI_DEV
+    : process.env.MONGODB_URI;
+const MONGODB_DBNAME =
+  process.env.NODE_ENV === 'development'
+    ? process.env.MONGODB_DBNAME_DEV
+    : process.env.MONGODB_DBNAME;
 
 /******************************** Initialize Discord Client *********************************/
 
