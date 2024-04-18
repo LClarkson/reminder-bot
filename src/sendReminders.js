@@ -24,6 +24,11 @@ const cron = require('node-cron');
 const { MongoClient } = require('mongodb');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
+const DISCORD_TOKEN =
+  process.env.NODE_ENV === 'development'
+    ? process.env.DISCORD_TOKEN_DEV
+    : process.env.DISCORD_TOKEN;
+
 /*********************************** Create bot client **************************************/
 
 const botClient = new Client({
@@ -44,7 +49,10 @@ botClient.once(Events.ClientReady, (readyClient) => {
 
 /********************************* Define MongoDB Variables *********************************/
 
-const mongoURI = process.env.MONGODB_URI;
+const mongoURI =
+  process.env.NODE_ENV === 'development'
+    ? process.env.MONGODB_URI_DEV
+    : process.env.MONGODB_URI;
 const sourceCollectionName = 'remindermsgs';
 const client = new MongoClient(mongoURI);
 
@@ -70,7 +78,10 @@ client.connect().then(() => {
     // Fetch messages from db
     try {
       // Define db variables
-      const dbName = process.env.MONGODB_DBNAME;
+      const dbName =
+        process.env.NODE_ENV === 'development'
+          ? process.env.MONGODB_DBNAME_DEV
+          : process.env.MONGODB_DBNAME;
       const db = client.db(dbName);
       const sourceCollection = db.collection(sourceCollectionName);
 
@@ -122,4 +133,4 @@ client.connect().then(() => {
 
 /******************** Log in to Discord API with Bot & log in to MongoDB ********************/
 
-botClient.login(process.env.DISCORD_TOKEN);
+botClient.login(DISCORD_TOKEN);

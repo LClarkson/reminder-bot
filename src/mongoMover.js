@@ -5,7 +5,7 @@
  * The class accepts 3 arguments: a source collection, a destination collection, and a cron schedule.
  * When calling the class, use the cronSchedule argument to define when the document move happens.
  * Use a .env file to specify your MongoDB URI.
-*/
+ */
 
 // Imports
 const cron = require('node-cron');
@@ -18,7 +18,10 @@ class MongoMover {
     this.sourceCollectionName = sourceCollectionName;
     this.destinationCollectionName = destinationCollectionName;
     this.cronSchedule = cronSchedule;
-    this.mongoURI = process.env.MONGODB_URI;
+    this.mongoURI =
+      process.env.NODE_ENV === 'development'
+        ? process.env.MONGODB_URI_DEV
+        : process.env.MONGODB_URI;
 
     this.client = new MongoClient(this.mongoURI);
   }
@@ -32,7 +35,10 @@ class MongoMover {
     console.log('Running the cron job...');
 
     try {
-      const dbName = process.env.MONGODB_DBNAME;
+      const dbName =
+        process.env.NODE_ENV === 'development'
+          ? process.env.MONGODB_DBNAME_DEV
+          : process.env.MONGODB_DBNAME;
       const db = this.client.db(dbName);
 
       const sourceCollection = db.collection(this.sourceCollectionName);
