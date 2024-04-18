@@ -21,13 +21,7 @@ const {
   EmbedBuilder,
 } = require('discord.js');
 const cron = require('node-cron');
-const cronSchedule = '0 18 * * *';
 const { MongoClient } = require('mongodb');
-const mongoURI = process.env.MONGODB_URI;
-const client = new MongoClient(mongoURI);
-
-// Configuration
-const sourceCollectionName = 'remindermsgs';
 
 const botClient = new Client({
   intents: [
