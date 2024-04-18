@@ -4,8 +4,8 @@
   "description": "Keep track of your friends' stupid predictions",
   "main": "index.js",
   "scripts": {
-    "prod": "--node-env=production node index.js",
-    "dev": "--node-env=development nodemon index.js"
+    "prod": "NODE_ENV=production node index.js",
+    "dev": "NODE_ENV=development nodemon index.js"
   },
   "keywords": [],
   "author": "Luke Clarkson",

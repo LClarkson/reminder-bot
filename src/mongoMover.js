@@ -28,7 +28,9 @@ class MongoMover {
 
   async connect() {
     await this.client.connect();
-    console.log('Connected to MongoDB');
+    process.env.NODE_ENV === 'development'
+      ? console.log('Connected to MongoDB DEV database')
+      : console.log('Connected to MongoDB PROD database');
   }
 
   async moveDocuments(moveType) {

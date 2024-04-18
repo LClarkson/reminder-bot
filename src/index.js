@@ -268,7 +268,9 @@ client
   .login(DISCORD_TOKEN)
   .then(
     client.once(Events.ClientReady, (readyClient) => {
-      console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+      process.env.NODE_ENV === 'development'
+        ? console.log(`Bot running in DEV mode as ${readyClient.user.tag}`)
+        : console.log(`Bot running in PROD mode as ${readyClient.user.tag}`);
     }),
   )
   .catch((error) => console.log(error));
@@ -279,7 +281,9 @@ mongoose
   })
   .then(
     mongoose.connection.on('connected', () => {
-      console.log(`Connected to MongoDB database: ${MONGODB_DBNAME}`);
+      process.env.NODE_ENV === 'development'
+        ? console.log(`Connected to MongoDB DEV database: ${MONGODB_DBNAME}`)
+        : console.log(`Connected to MongoDB PROD database: ${MONGODB_DBNAME}`);
     }),
   )
   .catch((error) => console.log(error));
