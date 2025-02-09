@@ -21,26 +21,15 @@ require('dotenv').config({ path: __dirname + '/../.env' });
 
 // Configuration
 const DISCORD_TOKEN =
-  process.env.NODE_ENV === 'development'
-    ? process.env.DISCORD_TOKEN_DEV
-    : process.env.DISCORD_TOKEN;
-const MONGODB_URI =
-  process.env.NODE_ENV === 'development'
-    ? process.env.MONGODB_URI_DEV
-    : process.env.MONGODB_URI;
+  process.env.NODE_ENV === 'development' ? process.env.DISCORD_TOKEN_DEV : process.env.DISCORD_TOKEN;
+const MONGODB_URI = process.env.NODE_ENV === 'development' ? process.env.MONGODB_URI_DEV : process.env.MONGODB_URI;
 const MONGODB_DBNAME =
-  process.env.NODE_ENV === 'development'
-    ? process.env.MONGODB_DBNAME_DEV
-    : process.env.MONGODB_DBNAME;
+  process.env.NODE_ENV === 'development' ? process.env.MONGODB_DBNAME_DEV : process.env.MONGODB_DBNAME;
 
 /******************************** Initialize Discord Client *********************************/
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageReactions,
-  ],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
@@ -75,10 +64,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
     author: reactedMessage.member.displayName,
     content: reactedMessage.content,
     timestamp: new Date(reactedMessage.createdTimestamp),
-    createdAt: new Date(reactedMessage.createdTimestamp).toLocaleString(
-      'en-US',
-      { year: 'numeric', month: 'long', day: 'numeric' },
-    ),
+    createdAt: new Date(reactedMessage.createdTimestamp).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
     avatar: reactedMessage.author.displayAvatarURL(),
   };
 
@@ -109,42 +99,18 @@ client.on('messageReactionAdd', async (reaction, user) => {
   const buildButtonComponents = () => {
     return [
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder()
-          .setCustomId('7')
-          .setLabel('1 Week')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('14')
-          .setLabel('2 Weeks')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('21')
-          .setLabel('3 Weeks')
-          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('7').setLabel('1 Week').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('14').setLabel('2 Weeks').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('21').setLabel('3 Weeks').setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder()
-          .setCustomId('30')
-          .setLabel('1 Month')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('90')
-          .setLabel('3 Months')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('180')
-          .setLabel('6 Months')
-          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('30').setLabel('1 Month').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('90').setLabel('3 Months').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('180').setLabel('6 Months').setStyle(ButtonStyle.Primary),
       ),
       new ActionRowBuilder().setComponents(
-        new ButtonBuilder()
-          .setCustomId('365')
-          .setLabel('1 Year')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('cancel')
-          .setLabel('Cancel')
-          .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId('365').setLabel('1 Year').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
       ),
     ];
   };
@@ -162,9 +128,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   const saveReminderToDatabase = async (messageInfo, userInfo, interaction) => {
     const reminderDate = new Date(messageInfo.timestamp);
-    reminderDate.setDate(
-      messageInfo.timestamp.getDate() + parseInt(interaction.customId),
-    );
+    reminderDate.setDate(messageInfo.timestamp.getDate() + parseInt(interaction.customId));
 
     // Save message to db
     await ReminderMsg.create({
@@ -181,6 +145,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       reactedName: userInfo.name,
       reactedAvatar: userInfo.avatar,
       reminderDate: reminderDate,
+      reminderSent: false,
     });
   };
 
@@ -205,15 +170,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
         await interaction.message.delete();
 
         // Remove all bell emojis from reacted message
-        const reacters = await reactedMessage.reactions.cache
-          .get('🔔')
-          .users.fetch();
+        const reacters = await reactedMessage.reactions.cache.get('🔔').users.fetch();
         reacters.forEach(async (reactor) => {
           if (!reactor.bot) {
             // Remove the user's reaction
-            await reactedMessage.reactions.cache
-              .get('🔔')
-              .users.remove(user.id);
+            await reactedMessage.reactions.cache.get('🔔').users.remove(user.id);
           }
         });
 
@@ -221,19 +182,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
         return;
       }
 
-      await saveReminderToDatabase(
-        reactedMessageInfo,
-        userWhoReacted,
-        interaction,
-      );
+      await saveReminderToDatabase(reactedMessageInfo, userWhoReacted, interaction);
 
       // Edit original bot message to show reminder time and delete interval buttons
       interaction.message.edit({
         embeds: [
           buildReplyEmbed().setFooter({
-            text: `Remind everyone about this in ${
-              idTranslate[interaction.customId]
-            }`,
+            text: `Remind everyone about this in ${idTranslate[interaction.customId]}`,
             iconURL: userWhoReacted.avatar,
           }),
         ],
