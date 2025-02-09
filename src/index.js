@@ -110,6 +110,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       ),
       new ActionRowBuilder().setComponents(
         new ButtonBuilder().setCustomId('365').setLabel('1 Year').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('custom').setLabel('Custom').setStyle(ButtonStyle.Primary),
         new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
       ),
     ];
@@ -129,6 +130,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
   const saveReminderToDatabase = async (messageInfo, userInfo, interaction) => {
     const reminderDate = new Date(messageInfo.timestamp);
     reminderDate.setDate(messageInfo.timestamp.getDate() + parseInt(interaction.customId));
+
+    /*****************************!!!! TODO !!!!**********************************
+     * add logic to handle custom input for interaction.customId                 *
+     *                                                                           *
+     *                                                                           *
+     *                                                                           *
+     *****************************************************************************/
 
     // Save message to db
     await ReminderMsg.create({
@@ -182,12 +190,27 @@ client.on('messageReactionAdd', async (reaction, user) => {
         return;
       }
 
+      /******************************!!!! TODO !!!!*********************************
+       * add logic for interaction.customId input                                  *
+       * use chrono-node to parse input using NLP and convert to date/time         *
+       * for reminder to fire                                                      *
+       *                                                                           *
+       *                                                                           *
+       *                                                                           *
+       *                                                                           *
+       *****************************************************************************/
+
+      if (interaction.customId === 'custom') {
+        //do stuff
+      }
+
       await saveReminderToDatabase(reactedMessageInfo, userWhoReacted, interaction);
 
       // Edit original bot message to show reminder time and delete interval buttons
       interaction.message.edit({
         embeds: [
           buildReplyEmbed().setFooter({
+            // !!!! TODO !!!! -- handle logic for customId input ********************
             text: `Remind everyone about this in ${idTranslate[interaction.customId]}`,
             iconURL: userWhoReacted.avatar,
           }),
